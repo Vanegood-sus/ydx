@@ -1,0 +1,599 @@
+-- Vanegood Hub
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- Создаем GUI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "VanegoodHub"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local TinyImageGui = Instance.new("ScreenGui")
+TinyImageGui.Name = "TinyDraggableImage"
+TinyImageGui.Parent = CoreGui
+TinyImageGui.ResetOnSpawn = false
+TinyImageGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+local imageSize = 65
+local imageFrame = Instance.new("Frame")
+imageFrame.Name = "TinyRoundedImage"
+imageFrame.Size = UDim2.new(0, imageSize, 0, imageSize)
+imageFrame.Position = UDim2.new(0, 20, 0, 20)
+imageFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 45)
+imageFrame.BorderSizePixel = 0
+imageFrame.ClipsDescendants = true
+imageFrame.ZIndex = 100
+imageFrame.Parent = TinyImageGui
+
+local uiCorner = Instance.new("UICorner")
+uiCorner.CornerRadius = UDim.new(1, 0)
+uiCorner.Parent = imageFrame
+
+local outerCircle = Instance.new("Frame")
+outerCircle.Size = UDim2.new(1, 0, 1, 0)
+outerCircle.Position = UDim2.new(0, 0, 0, 0)
+outerCircle.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+outerCircle.BorderSizePixel = 0
+outerCircle.ZIndex = 101
+outerCircle.Parent = imageFrame
+
+local outerCircleCorner = Instance.new("UICorner")
+outerCircleCorner.CornerRadius = UDim.new(1, 0)
+outerCircleCorner.Parent = outerCircle
+
+local innerCircle = Instance.new("Frame")
+innerCircle.Size = UDim2.new(0, imageSize/2, 0, imageSize/2)
+innerCircle.Position = UDim2.new(0.25, 0, 0.25, 0)
+innerCircle.BackgroundColor3 = Color3.fromRGB(255, 165, 50)
+innerCircle.BorderSizePixel = 0
+innerCircle.ZIndex = 102
+innerCircle.Parent = imageFrame
+
+local innerCircleCorner = Instance.new("UICorner")
+innerCircleCorner.CornerRadius = UDim.new(1, 0)
+innerCircleCorner.Parent = innerCircle
+
+local glowEffect = Instance.new("UIStroke")
+glowEffect.Color = Color3.fromRGB(255, 165, 50)
+glowEffect.Thickness = 0
+glowEffect.Transparency = 0.8
+glowEffect.Parent = imageFrame
+
+imageFrame.MouseEnter:Connect(function()
+    TweenService:Create(glowEffect, TweenInfo.new(0.3), {Thickness = 3}):Play()
+end)
+
+imageFrame.MouseLeave:Connect(function()
+    TweenService:Create(glowEffect, TweenInfo.new(0.3), {Thickness = 0}):Play()
+end)
+
+local touchStartPos, frameStartPos
+local isDragging = false
+
+imageFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        isDragging = true
+        touchStartPos = input.Position
+        frameStartPos = imageFrame.Position
+        TweenService:Create(imageFrame, TweenInfo.new(0.1), {Size = UDim2.new(0, imageSize-5, 0, imageSize-5)}):Play()
+    end
+end)
+
+imageFrame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        isDragging = false
+        TweenService:Create(imageFrame, TweenInfo.new(0.1), {Size = UDim2.new(0, imageSize, 0, imageSize)}):Play()
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if isDragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+        local delta = input.Position - touchStartPos
+        imageFrame.Position = UDim2.new(
+            frameStartPos.X.Scale,
+            frameStartPos.X.Offset + delta.X,
+            frameStartPos.Y.Scale,
+            frameStartPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- Основное окно хаба
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 500, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+MainFrame.BackgroundTransparency = 0.1
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.ZIndex = 2
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 12)
+UICorner.Parent = MainFrame
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(255, 165, 50)
+UIStroke.Thickness = 2
+UIStroke.Transparency = 0.3
+UIStroke.Parent = MainFrame
+
+local Shadow = Instance.new("ImageLabel")
+Shadow.Size = UDim2.new(1, 20, 1, 20)
+Shadow.Position = UDim2.new(0, -10, 0, -10)
+Shadow.BackgroundTransparency = 1
+Shadow.Image = "rbxassetid://5554236805"
+Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.ImageTransparency = 0.8
+Shadow.ScaleType = Enum.ScaleType.Slice
+Shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+Shadow.ZIndex = 1
+Shadow.Parent = MainFrame
+
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 35)
+TopBar.Position = UDim2.new(0, 0, 0, 0)
+TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+TopBar.ZIndex = 3
+TopBar.Parent = MainFrame
+
+local TopBarCorner = Instance.new("UICorner")
+TopBarCorner.CornerRadius = UDim.new(0, 12)
+TopBarCorner.Parent = TopBar
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(0, 200, 1, 0)
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "VANEGOOD HUB"
+Title.TextColor3 = Color3.fromRGB(240, 240, 240)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 16
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.ZIndex = 4
+Title.Parent = TopBar
+
+local Version = Instance.new("TextLabel")
+Version.Size = UDim2.new(0, 60, 1, 0)
+Version.Position = UDim2.new(0, 200, 0, 0)
+Version.BackgroundTransparency = 1
+Version.Text = "v1.0.0"
+Version.TextColor3 = Color3.fromRGB(255, 165, 50)
+Version.Font = Enum.Font.Gotham
+Version.TextSize = 12
+Version.TextXAlignment = Enum.TextXAlignment.Left
+Version.ZIndex = 4
+Version.Parent = TopBar
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 25, 0, 25)
+CloseButton.Position = UDim2.new(1, -30, 0.5, -12.5)
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 165, 50)
+CloseButton.Text = "×"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 20
+CloseButton.ZIndex = 4
+CloseButton.Parent = TopBar
+
+local CloseButtonCorner = Instance.new("UICorner")
+CloseButtonCorner.CornerRadius = UDim.new(1, 0)
+CloseButtonCorner.Parent = CloseButton
+
+local MinimizeButton = Instance.new("TextButton")
+MinimizeButton.Size = UDim2.new(0, 25, 0, 25)
+MinimizeButton.Position = UDim2.new(1, -60, 0.5, -12.5)
+MinimizeButton.BackgroundColor3 = Color3.fromRGB(80, 80, 85)
+MinimizeButton.Text = "—"
+MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeButton.Font = Enum.Font.GothamBold
+MinimizeButton.TextSize = 16
+MinimizeButton.ZIndex = 4
+MinimizeButton.Parent = TopBar
+
+local MinimizeButtonCorner = Instance.new("UICorner")
+MinimizeButtonCorner.CornerRadius = UDim.new(1, 0)
+MinimizeButtonCorner.Parent = MinimizeButton
+
+local TabBar = Instance.new("Frame")
+TabBar.Size = UDim2.new(1, -20, 0, 35)
+TabBar.Position = UDim2.new(0, 10, 0, 40)
+TabBar.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+TabBar.BorderSizePixel = 0
+TabBar.ZIndex = 3
+TabBar.Parent = MainFrame
+
+local TabBarCorner = Instance.new("UICorner")
+TabBarCorner.CornerRadius = UDim.new(0, 8)
+TabBarCorner.Parent = TabBar
+
+-- Новая вкладка МЕНЮ
+local MenuTab = Instance.new("TextButton")
+MenuTab.Size = UDim2.new(0.25, 0, 1, 0)
+MenuTab.Position = UDim2.new(0, 0, 0, 0)
+MenuTab.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+MenuTab.Text = "МЕНЮ"
+MenuTab.TextColor3 = Color3.fromRGB(180, 180, 180)
+MenuTab.Font = Enum.Font.GothamBold
+MenuTab.TextSize = 12
+MenuTab.ZIndex = 4
+MenuTab.Parent = TabBar
+
+local ScriptsTab = Instance.new("TextButton")
+ScriptsTab.Size = UDim2.new(0.25, 0, 1, 0)
+ScriptsTab.Position = UDim2.new(0.25, 0, 0, 0)
+ScriptsTab.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+ScriptsTab.Text = "СКРИПТЫ"
+ScriptsTab.TextColor3 = Color3.fromRGB(255, 165, 50)
+ScriptsTab.Font = Enum.Font.GothamBold
+ScriptsTab.TextSize = 12
+ScriptsTab.ZIndex = 4
+ScriptsTab.Parent = TabBar
+
+local GamesTab = Instance.new("TextButton")
+GamesTab.Size = UDim2.new(0.25, 0, 1, 0)
+GamesTab.Position = UDim2.new(0.5, 0, 0, 0)
+GamesTab.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+GamesTab.Text = "ИГРЫ"
+GamesTab.TextColor3 = Color3.fromRGB(180, 180, 180)
+GamesTab.Font = Enum.Font.GothamBold
+GamesTab.TextSize = 12
+GamesTab.ZIndex = 4
+GamesTab.Parent = TabBar
+
+local TrollTab = Instance.new("TextButton")
+TrollTab.Size = UDim2.new(0.25, 0, 1, 0)
+TrollTab.Position = UDim2.new(0.75, 0, 0, 0)
+TrollTab.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+TrollTab.Text = "ТРОЛЛИНГ"
+TrollTab.TextColor3 = Color3.fromRGB(180, 180, 180)
+TrollTab.Font = Enum.Font.GothamBold
+TrollTab.TextSize = 12
+TrollTab.ZIndex = 4
+TrollTab.Parent = TabBar
+
+-- Индикатор вкладки (оранжевый)
+local ActiveTabIndicator = Instance.new("Frame")
+ActiveTabIndicator.Size = UDim2.new(0.25, 0, 0, 3)
+ActiveTabIndicator.Position = UDim2.new(0, 0, 1, -3)
+ActiveTabIndicator.BackgroundColor3 = Color3.fromRGB(255, 165, 50)
+ActiveTabIndicator.ZIndex = 4
+ActiveTabIndicator.Parent = TabBar
+
+local ContentFrame = Instance.new("Frame")
+ContentFrame.Size = UDim2.new(1, -20, 1, -120)
+ContentFrame.Position = UDim2.new(0, 10, 0, 80)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.ClipsDescendants = true
+ContentFrame.ZIndex = 3
+ContentFrame.Parent = MainFrame
+
+local MenuFrame = Instance.new("ScrollingFrame")
+MenuFrame.Size = UDim2.new(1, 0, 1, 0)
+MenuFrame.Position = UDim2.new(0, 0, 0, 0)
+MenuFrame.BackgroundTransparency = 1
+MenuFrame.ScrollBarThickness = 3
+MenuFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+MenuFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+MenuFrame.Visible = false
+MenuFrame.ZIndex = 3
+MenuFrame.Parent = ContentFrame
+
+local MenuListLayout = Instance.new("UIListLayout")
+MenuListLayout.Padding = UDim.new(0, 10)
+MenuListLayout.Parent = MenuFrame
+
+local ScriptsFrame = Instance.new("ScrollingFrame")
+ScriptsFrame.Size = UDim2.new(1, 0, 1, 0)
+ScriptsFrame.Position = UDim2.new(0, 0, 0, 0)
+ScriptsFrame.BackgroundTransparency = 1
+ScriptsFrame.ScrollBarThickness = 3
+ScriptsFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+ScriptsFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+ScriptsFrame.Visible = true
+ScriptsFrame.ZIndex = 3
+ScriptsFrame.Parent = ContentFrame
+
+local ScriptsListLayout = Instance.new("UIListLayout")
+ScriptsListLayout.Padding = UDim.new(0, 10)
+ScriptsListLayout.Parent = ScriptsFrame
+
+local GamesFrame = Instance.new("ScrollingFrame")
+GamesFrame.Size = UDim2.new(1, 0, 1, 0)
+GamesFrame.Position = UDim2.new(0, 0, 0, 0)
+GamesFrame.BackgroundTransparency = 1
+GamesFrame.ScrollBarThickness = 3
+GamesFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+GamesFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+GamesFrame.Visible = false
+GamesFrame.ZIndex = 3
+GamesFrame.Parent = ContentFrame
+
+local TrollFrame = Instance.new("ScrollingFrame")
+TrollFrame.Size = UDim2.new(1, 0, 1, 0)
+TrollFrame.Position = UDim2.new(0, 0, 0, 0)
+TrollFrame.BackgroundTransparency = 1
+TrollFrame.ScrollBarThickness = 3
+TrollFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 80)
+TrollFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+TrollFrame.Visible = false
+TrollFrame.ZIndex = 3
+TrollFrame.Parent = ContentFrame
+
+local BottomPanel = Instance.new("Frame")
+BottomPanel.Size = UDim2.new(1, -20, 0, 40)
+BottomPanel.Position = UDim2.new(0, 10, 1, -50)
+BottomPanel.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+BottomPanel.BorderSizePixel = 0
+BottomPanel.ZIndex = 3
+BottomPanel.Parent = MainFrame
+
+local BottomPanelCorner = Instance.new("UICorner")
+BottomPanelCorner.CornerRadius = UDim.new(0, 8)
+BottomPanelCorner.Parent = BottomPanel
+
+local Avatar = Instance.new("ImageLabel")
+Avatar.Size = UDim2.new(0, 30, 0, 30)
+Avatar.Position = UDim2.new(0, 10, 0.5, -15)
+Avatar.BackgroundColor3 = Color3.fromRGB(60, 60, 65)
+Avatar.BorderSizePixel = 0
+Avatar.ZIndex = 4
+Avatar.Parent = BottomPanel
+
+local AvatarCorner = Instance.new("UICorner")
+AvatarCorner.CornerRadius = UDim.new(1, 0)
+AvatarCorner.Parent = Avatar
+
+local Username = Instance.new("TextLabel")
+Username.Size = UDim2.new(0, 200, 0, 15)
+Username.Position = UDim2.new(0, 50, 0, 5)
+Username.BackgroundTransparency = 1
+Username.Text = LocalPlayer.Name
+Username.TextColor3 = Color3.fromRGB(240, 240, 240)
+Username.Font = Enum.Font.GothamBold
+Username.TextSize = 12
+Username.TextXAlignment = Enum.TextXAlignment.Left
+Username.ZIndex = 4
+Username.Parent = BottomPanel
+
+local DisplayName = Instance.new("TextLabel")
+DisplayName.Size = UDim2.new(0, 200, 0, 15)
+DisplayName.Position = UDim2.new(0, 50, 0, 20)
+DisplayName.BackgroundTransparency = 1
+DisplayName.Text = LocalPlayer.DisplayName
+DisplayName.TextColor3 = Color3.fromRGB(200, 200, 200)
+DisplayName.Font = Enum.Font.Gotham
+DisplayName.TextSize = 11
+DisplayName.TextXAlignment = Enum.TextXAlignment.Left
+DisplayName.ZIndex = 4
+DisplayName.Parent = BottomPanel
+
+local Status = Instance.new("TextLabel")
+Status.Size = UDim2.new(0, 100, 0, 15)
+Status.Position = UDim2.new(1, -110, 0.5, -7.5)
+Status.BackgroundTransparency = 1
+Status.Text = "Online"
+Status.TextColor3 = Color3.fromRGB(100, 200, 100)
+Status.Font = Enum.Font.Gotham
+Status.TextSize = 12
+Status.TextXAlignment = Enum.TextXAlignment.Right
+Status.ZIndex = 4
+Status.Parent = BottomPanel
+
+local function loadPlayerAvatar()
+    local userId = LocalPlayer.UserId
+    local thumbType = Enum.ThumbnailType.AvatarThumbnail
+    local thumbSize = Enum.ThumbnailSize.Size100x100
+    local content, isReady = Players:GetUserThumbnailAsync(userId, thumbType, thumbSize)
+    Avatar.Image = content
+end
+
+pcall(loadPlayerAvatar)
+
+local function switchTab(tab)
+    MenuTab.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+    ScriptsTab.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+    GamesTab.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+    TrollTab.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+    
+    MenuTab.TextColor3 = Color3.fromRGB(180, 180, 180)
+    ScriptsTab.TextColor3 = Color3.fromRGB(180, 180, 180)
+    GamesTab.TextColor3 = Color3.fromRGB(180, 180, 180)
+    TrollTab.TextColor3 = Color3.fromRGB(180, 180, 180)
+    
+    MenuFrame.Visible = false
+    ScriptsFrame.Visible = false
+    GamesFrame.Visible = false
+    TrollFrame.Visible = false
+    
+    if tab == "menu" then
+        MenuTab.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+        MenuTab.TextColor3 = Color3.fromRGB(255, 165, 50)
+        TweenService:Create(ActiveTabIndicator, TweenInfo.new(0.2), {Position = UDim2.new(0, 0, 1, -3), Size = UDim2.new(0.25, 0, 0, 3)}):Play()
+        MenuFrame.Visible = true
+    elseif tab == "scripts" then
+        ScriptsTab.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+        ScriptsTab.TextColor3 = Color3.fromRGB(255, 165, 50)
+        TweenService:Create(ActiveTabIndicator, TweenInfo.new(0.2), {Position = UDim2.new(0.25, 0, 1, -3), Size = UDim2.new(0.25, 0, 0, 3)}):Play()
+        ScriptsFrame.Visible = true
+    elseif tab == "games" then
+        GamesTab.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+        GamesTab.TextColor3 = Color3.fromRGB(255, 165, 50)
+        TweenService:Create(ActiveTabIndicator, TweenInfo.new(0.2), {Position = UDim2.new(0.5, 0, 1, -3), Size = UDim2.new(0.25, 0, 0, 3)}):Play()
+        GamesFrame.Visible = true
+    else
+        TrollTab.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
+        TrollTab.TextColor3 = Color3.fromRGB(255, 165, 50)
+        TweenService:Create(ActiveTabIndicator, TweenInfo.new(0.2), {Position = UDim2.new(0.75, 0, 1, -3), Size = UDim2.new(0.25, 0, 0, 3)}):Play()
+        TrollFrame.Visible = true
+    end
+end
+
+MenuTab.MouseButton1Click:Connect(function() switchTab("menu") end)
+ScriptsTab.MouseButton1Click:Connect(function() switchTab("scripts") end)
+GamesTab.MouseButton1Click:Connect(function() switchTab("games") end)
+TrollTab.MouseButton1Click:Connect(function() switchTab("troll") end)
+
+local function setupTabHoverEffects(tab)
+    tab.MouseEnter:Connect(function()
+        if tab.TextColor3 ~= Color3.fromRGB(255, 165, 50) then
+            TweenService:Create(tab, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(220, 220, 220)}):Play()
+        end
+    end)
+    
+    tab.MouseLeave:Connect(function()
+        if tab.TextColor3 ~= Color3.fromRGB(255, 165, 50) then
+            TweenService:Create(tab, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(180, 180, 180)}):Play()
+        end
+    end)
+end
+
+setupTabHoverEffects(MenuTab)
+setupTabHoverEffects(ScriptsTab)
+setupTabHoverEffects(GamesTab)
+setupTabHoverEffects(TrollTab)
+
+local minimized = false
+MinimizeButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 500, 0, 35)}):Play()
+        ContentFrame.Visible = false
+        TabBar.Visible = false
+        BottomPanel.Visible = false
+        MinimizeButton.Text = "+"
+    else
+        TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 500, 0, 400)}):Play()
+        ContentFrame.Visible = true
+        TabBar.Visible = true
+        BottomPanel.Visible = true
+        MinimizeButton.Text = "—"
+    end
+end)
+
+MinimizeButton.MouseEnter:Connect(function()
+    TweenService:Create(MinimizeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(100, 100, 105)}):Play()
+end)
+
+MinimizeButton.MouseLeave:Connect(function()
+    TweenService:Create(MinimizeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 80, 85)}):Play()
+end)
+
+CloseButton.MouseEnter:Connect(function()
+    TweenService:Create(CloseButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 130, 30)}):Play()
+end)
+
+CloseButton.MouseLeave:Connect(function()
+    TweenService:Create(CloseButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 165, 50)}):Play()
+end)
+
+CloseButton.MouseButton1Click:Connect(function()
+    local MessageFrame = Instance.new("Frame")
+    MessageFrame.Size = UDim2.new(0, 280, 0, 140)
+    MessageFrame.Position = UDim2.new(0.5, -140, 0.5, -70)
+    MessageFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    MessageFrame.BorderSizePixel = 0
+    MessageFrame.ZIndex = 10
+    MessageFrame.Parent = ScreenGui
+    
+    local MessageCorner = Instance.new("UICorner")
+    MessageCorner.CornerRadius = UDim.new(0, 12)
+    MessageCorner.Parent = MessageFrame
+    
+    local MessageStroke = Instance.new("UIStroke")
+    MessageStroke.Color = Color3.fromRGB(255, 165, 50)
+    MessageStroke.Thickness = 2
+    MessageStroke.Transparency = 0.3
+    MessageStroke.Parent = MessageFrame
+    
+    local MessageLabel = Instance.new("TextLabel")
+    MessageLabel.Size = UDim2.new(1, -20, 0, 70)
+    MessageLabel.Position = UDim2.new(0, 10, 0, 10)
+    MessageLabel.BackgroundTransparency = 1
+    MessageLabel.Text = "Закрыть Vanegood Hub?"
+    MessageLabel.TextColor3 = Color3.new(1, 1, 1)
+    MessageLabel.Font = Enum.Font.GothamBold
+    MessageLabel.TextSize = 16
+    MessageLabel.TextWrapped = true
+    MessageLabel.ZIndex = 11
+    MessageLabel.Parent = MessageFrame
+    
+    local YesButton = Instance.new("TextButton")
+    YesButton.Size = UDim2.new(0, 110, 0, 35)
+    YesButton.Position = UDim2.new(0.5, -115, 1, -45)
+    YesButton.BackgroundColor3 = Color3.fromRGB(255, 165, 50)
+    YesButton.Text = "Да"
+    YesButton.TextColor3 = Color3.new(1, 1, 1)
+    YesButton.Font = Enum.Font.GothamBold
+    YesButton.TextSize = 14
+    YesButton.ZIndex = 11
+    YesButton.Parent = MessageFrame
+    
+    local YesButtonCorner = Instance.new("UICorner")
+    YesButtonCorner.CornerRadius = UDim.new(0, 8)
+    YesButtonCorner.Parent = YesButton
+    
+    local NoButton = Instance.new("TextButton")
+    NoButton.Size = UDim2.new(0, 110, 0, 35)
+    NoButton.Position = UDim2.new(0.5, 5, 1, -45)
+    NoButton.BackgroundColor3 = Color3.fromRGB(80, 80, 90)
+    NoButton.Text = "Нет"
+    NoButton.TextColor3 = Color3.new(1, 1, 1)
+    NoButton.Font = Enum.Font.GothamBold
+    NoButton.TextSize = 14
+    NoButton.ZIndex = 11
+    NoButton.Parent = MessageFrame
+    
+    local NoButtonCorner = Instance.new("UICorner")
+    NoButtonCorner.CornerRadius = UDim.new(0, 8)
+    NoButtonCorner.Parent = NoButton
+    
+    YesButton.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+        TinyImageGui:Destroy()
+    end)
+    
+    NoButton.MouseButton1Click:Connect(function()
+        MessageFrame:Destroy()
+    end)
+    
+    YesButton.MouseEnter:Connect(function()
+        TweenService:Create(YesButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 130, 30)}):Play()
+    end)
+    
+    YesButton.MouseLeave:Connect(function()
+        TweenService:Create(YesButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 165, 50)}):Play()
+    end)
+    
+    NoButton.MouseEnter:Connect(function()
+        TweenService:Create(NoButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(100, 100, 105)}):Play()
+    end)
+    
+    NoButton.MouseLeave:Connect(function()
+        TweenService:Create(NoButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 80, 90)}):Play()
+    end)
+end)
+
+local hubVisible = true
+imageFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        hubVisible = not hubVisible
+        ScreenGui.Enabled = hubVisible
+        
+        if hubVisible then
+            TweenService:Create(innerCircle, TweenInfo.new(0.2), {BackgroundTransparency = 0}):Play()
+        else
+            TweenService:Create(innerCircle, TweenInfo.new(0.2), {BackgroundTransparency = 0.5}):Play()
+        end
+    end
+end)
+
+-- Инициализация
+switchTab("scripts")
